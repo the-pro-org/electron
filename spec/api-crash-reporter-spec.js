@@ -10,16 +10,18 @@ const {closeWindow} = require('./window-helpers')
 const {remote} = require('electron')
 const {app, BrowserWindow, crashReporter} = remote.require('electron')
 
-describe('crashReporter module', function () {
-  var fixtures = path.resolve(__dirname, 'fixtures')
+const fixtures = path.resolve(__dirname, 'fixtures')
+
+const generateSpecs = (describePrefix, browserWindowOpts) => {
+describe(describePrefix + 'crashReporter module', function () {
   var w = null
   var originalTempDirectory = null
   var tempDirectory = null
 
   beforeEach(function () {
-    w = new BrowserWindow({
+    w = new BrowserWindow(Object.assign({
       show: false
-    })
+    }, browserWindowOpts))
     tempDirectory = temp.mkdirSync('electronCrashReporterSpec-')
     originalTempDirectory = app.getPath('temp')
     app.setPath('temp', tempDirectory)
@@ -142,6 +144,7 @@ describe('crashReporter module', function () {
     })
   })
 })
+}
 
 const waitForCrashReport = () => {
   return new Promise((resolve, reject) => {
@@ -205,3 +208,11 @@ const startServer = ({callback, processType, done}) => {
     callback(port)
   })
 }
+
+generateSpecs('', {})
+generateSpecs('sandbox ', {
+  webPreferences: {
+    sandbox: true,
+    preload: path.join(fixtures, 'module', 'preload-sandbox.js')
+  }
+})
